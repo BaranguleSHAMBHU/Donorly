@@ -14,9 +14,9 @@ const CampSchema = new mongoose.Schema({
   organizationId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Organization",
-    required: false,
+    required: true,
   },
-
+  
   createdAt: { type: Date, default: Date.now },
   registeredDonors: [{
     type: mongoose.Schema.Types.ObjectId,

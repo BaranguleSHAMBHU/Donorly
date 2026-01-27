@@ -4,13 +4,28 @@ import Camp from "../models/Camp.js";
 // @route   POST /api/camps
 export const createCamp = async (req, res) => {
   try {
-    const newCamp = await Camp.create({
-      ...req.body,
-      // organizationId will be added later via auth middleware
-    });
+    console.log("🔹 4. Inside Controller. User:", req.user); // DEBUG LOG
 
+    // Check if req.user exists
+    if (!req.user || !req.user._id) {
+       console.log("❌ User ID missing in request");
+       return res.status(401).json({ message: "User authentication failed" });
+    }
+
+    const campData = {
+      ...req.body,
+      organizationId: req.user._id, // This is what we are watching!
+      organizerName: req.body.organizerName || req.user.orgName 
+    };
+
+    console.log("🔹 5. Saving Camp Data:", campData); // DEBUG LOG
+
+    const newCamp = await Camp.create(campData);
+
+    console.log("✅ 6. Camp Created Successfully:", newCamp);
     res.status(201).json(newCamp);
   } catch (error) {
+    console.error("❌ Error creating camp:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -49,6 +64,26 @@ export const registerForCamp = async (req, res) => {
     await camp.save();
 
     res.json({ message: "Registration successful", campId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+/**
+ * @desc    Get Single Camp Details (with Donor List)
+ * @route   GET /api/camps/:id
+ */
+export const getCampDetails = async (req, res) => {
+  try {
+    const camp = await Camp.findById(req.params.id)
+      .populate('registeredDonors', 'fullName bloodGroup phone email dob') // 👈 Get these fields from Donor
+      .populate('organizationId', 'orgName');
+
+    if (!camp) {
+      return res.status(404).json({ message: "Camp not found" });
+    }
+
+    res.json(camp);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
