@@ -63,13 +63,18 @@ const Profile = ({ isDarkMode }) => {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem("donorToken");
-      const res = await axios.put("/api/auth/profile", formData, {
+      const res = await axios.put("http://localhost:5000/api/auth/profile", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       setFormData(res.data);
       setIsEditing(false);
       toast.success("Profile updated successfully");
+      const currentUser = JSON.parse(localStorage.getItem("donorUser"));
+      if (currentUser) {
+          const updatedUser = { ...currentUser, fullName: formData.fullName };
+          localStorage.setItem("donorUser", JSON.stringify(updatedUser));
+      }
     } catch (error) {
       toast.error("Profile update failed");
     }

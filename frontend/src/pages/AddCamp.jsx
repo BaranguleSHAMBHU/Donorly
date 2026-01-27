@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios'; // ✅ Switched to Axios for consistency
 import { 
   ArrowLeft, Calendar, MapPin, Clock, Users, Building2, 
-  CheckCircle, FileText, Info 
+  CheckCircle, FileText, Info, Loader2 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext.jsx';
@@ -22,8 +23,17 @@ const AddCamp = () => {
     endTime: '',
     targetDonors: '',
     description: '',
-    organizerName: ''
+    organizerName: '' // We will auto-fill this
   });
+
+  // ✅ Auto-fill Organizer Name on Load
+  useEffect(() => {
+    const storedOrg = localStorage.getItem("orgUser");
+    if (storedOrg) {
+      const org = JSON.parse(storedOrg);
+      setFormData(prev => ({ ...prev, organizerName: org.orgName }));
+    }
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -40,30 +50,31 @@ const AddCamp = () => {
 
     setIsLoading(true);
 
-   try {
-  const token = localStorage.getItem("orgToken"); // Get the token
+    try {
+      const token = localStorage.getItem("orgToken");
 
-  const res = await fetch("http://localhost:5000/api/camps", {
-    method: "POST",
-    headers: { 
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}` // Send token to backend
-    },
-    body: JSON.stringify(formData),
-  });
+      if (!token) {
+        toast.error("You are not logged in.");
+        navigate('/org-login');
+        return;
+      }
 
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.message || "Failed");
-  }
-  
-  toast.success("Camp Scheduled Successfully!");
-  setTimeout(() => navigate('/org-dashboard'), 1500);
-  
-} catch (error) {
-  toast.error(error.message);
-}
+      // ✅ AXIOS REQUEST
+      // We do NOT send organizationId. The backend extracts it from the token.
+      await axios.post("http://localhost:5000/api/camps", formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success("Camp Scheduled Successfully!");
+      setTimeout(() => navigate('/org-dashboard'), 1500);
+      
+    } catch (error) {
+      console.error(error);
+      const msg = error.response?.data?.message || "Failed to create camp";
+      toast.error(msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Theme Config
@@ -229,7 +240,7 @@ const AddCamp = () => {
                 className={`w-full py-4 rounded-xl font-bold text-white shadow-lg shadow-teal-500/20 transition-all flex items-center justify-center gap-2 ${theme.primary} ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:scale-[1.01]'}`}
               >
                 {isLoading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
                   <>
                     <CheckCircle className="w-5 h-5" /> Publish Camp Schedule
