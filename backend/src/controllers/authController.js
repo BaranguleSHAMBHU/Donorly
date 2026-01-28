@@ -1,6 +1,7 @@
 import Donor from "../models/Donor.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import Donation from '../models/Donation.js';
 
 /**
  * Generate JWT token
@@ -147,4 +148,49 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: "Profile update failed" });
   }
 };
+// @desc    Get Donor Statistics
+// @route   GET /api/auth/stats
+export const getDonorStats = async (req, res) => {
+  try {
+    // 1. Find completed donations for this donor
+    const donations = await Donation.find({ donorId: req.user.id })
+      .sort({ date: -1 }) // Newest first
+      .populate('campId', 'campName location date'); // Get camp details
 
+    const totalDonations = donations.length;
+    const livesSaved = totalDonations * 3; 
+
+    // 2. Calculate Eligibility based on LAST ACTUAL DONATION
+    const lastDonationDate = donations.length > 0 ? donations[0].date : null;
+    
+    let nextEligibleDate = null;
+    if (lastDonationDate) {
+      const last = new Date(lastDonationDate);
+      last.setDate(last.getDate() + 90); // Add 90 days rule
+      nextEligibleDate = last;
+    } else {
+      nextEligibleDate = new Date(); // Eligible now
+    }
+
+    // 3. Get Recent Activity (Mix of completed donations and upcoming camps)
+    // For simplicity, let's just show completed donations here
+    const recentActivity = donations.slice(0, 3).map(d => ({
+        _id: d._id,
+        campName: d.campId ? d.campId.campName : "Unknown Camp",
+        date: d.date,
+        status: "Completed"
+    }));
+
+    res.json({
+      totalDonations,
+      livesSaved,
+      lastDonationDate,
+      nextEligibleDate,
+      recentActivity
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error fetching stats" });
+  }
+};
