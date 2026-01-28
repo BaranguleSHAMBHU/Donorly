@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Users, Search, Phone, Droplet, ChevronDown, CheckCircle } from 'lucide-react';
+import { Users, Search, Phone, Droplet, ChevronDown, CheckCircle, Bell, FileText, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const DonorManagement = ({ isDarkMode }) => {
@@ -68,15 +68,48 @@ const DonorManagement = ({ isDarkMode }) => {
   }, [selectedCampId]);
 
   // 3. Handle Check-In Action
-  const handleCheckIn = (donorId) => {
-    // Optimistic UI Update: Change status immediately
-    setDonors(prev => prev.map(d => 
-        d._id === donorId ? { ...d, status: 'Donated' } : d
-    ));
-    toast.success("Donor checked in successfully!");
+  const handleCheckIn = async (donorId) => {
+    try {
+        // Call the backend
+        await axios.put(`http://localhost:5000/api/camps/${selectedCampId}/checkin`, 
+            { donorId },
+            { headers: { Authorization: `Bearer ${localStorage.getItem("orgToken")}` } }
+        );
+
+        // Optimistic UI Update
+        setDonors(prev => prev.map(d => 
+            d._id === donorId ? { ...d, status: 'Donated' } : d
+        ));
+        
+        toast.success("Donation recorded successfully!");
     
-    // NOTE: In a real app, you would send an API request here to update the DB.
-    // e.g., axios.put(`/api/camps/${selectedCampId}/checkin`, { donorId });
+    } catch (error) {
+        toast.error(error.response?.data?.message || "Check-in failed");
+    }
+  };
+
+  // 4. Handle Notify Donors
+  const handleNotifyDonors = async () => {
+    if (!selectedCampId) return;
+    
+    // Optional: Ask for custom message or use default
+    const confirmNotify = window.confirm("Send a reminder notification to all registered donors?");
+    if (!confirmNotify) return;
+
+    try {
+      const token = localStorage.getItem("orgToken");
+      await axios.post("http://localhost:5000/api/notifications/send-camp-alert", {
+        campId: selectedCampId,
+        message: "🔔 Reminder: Our blood donation drive is live! Please visit the camp location.",
+        type: 'reminder'
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      toast.success("Notifications sent successfully!");
+    } catch (error) {
+      toast.error("Failed to send notifications.");
+    }
   };
 
   // Theme Helpers
@@ -105,6 +138,7 @@ const DonorManagement = ({ isDarkMode }) => {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
+          
           {/* Camp Selector Dropdown */}
           <div className="relative">
             <select 
@@ -125,12 +159,24 @@ const DonorManagement = ({ isDarkMode }) => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search donor name..." 
+              placeholder="Search donor..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`pl-10 pr-4 py-2.5 rounded-xl border outline-none w-full sm:w-64 ${theme.input}`}
+              className={`pl-10 pr-4 py-2.5 rounded-xl border outline-none w-full sm:w-48 ${theme.input}`}
             />
           </div>
+
+          {/* Notify Button */}
+          <button 
+            onClick={handleNotifyDonors}
+            disabled={!selectedCampId || donors.length === 0}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            title="Send reminder to all registered donors"
+          >
+            <Bell className="w-4 h-4" /> 
+            <span className="hidden md:inline">Notify All</span>
+          </button>
+
         </div>
       </div>
 
@@ -196,19 +242,18 @@ const DonorManagement = ({ isDarkMode }) => {
                     <td className="p-5 text-right">
                       {donor.status === 'Donated' ? (
                         <div className="flex flex-col gap-2 items-end">
-                        <span className="text-emerald-600 font-bold text-xs flex items-center justify-end gap-1">
-                          <CheckCircle className="w-4 h-4" /> Checked In
-                        </span>
-                        {/* 👇 NEW DOWNLOAD BUTTON */}
-        <a 
-          href={`http://localhost:5000/api/camps/${selectedCampId}/certificate/${donor._id}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-3 py-1.5 rounded-lg border border-teal-600 text-teal-600 text-xs font-bold hover:bg-teal-50 transition-colors flex items-center gap-1"
-        >
-          Download Cert
-        </a>
-    </div>
+                            <span className="text-emerald-600 font-bold text-xs flex items-center justify-end gap-1">
+                              <CheckCircle className="w-4 h-4" /> Checked In
+                            </span>
+                            <a 
+                              href={`http://localhost:5000/api/camps/${selectedCampId}/certificate/${donor._id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3 py-1.5 rounded-lg border border-teal-600 text-teal-600 text-xs font-bold hover:bg-teal-50 transition-colors flex items-center gap-1"
+                            >
+                              <Download className="w-3 h-3" /> Cert
+                            </a>
+                        </div>
                       ) : (
                         <button 
                           onClick={() => handleCheckIn(donor._id)}

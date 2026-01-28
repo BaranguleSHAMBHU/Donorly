@@ -1,119 +1,117 @@
 import React from 'react';
-import { QrCode, Calendar, MapPin, ChevronRight, Droplet, ArrowUpRight } from 'lucide-react';
+import { Calendar, Droplet, Heart, Clock, ArrowRight } from 'lucide-react';
 
-const DonorHome = ({ user, isDarkMode }) => {
+const DonorHome = ({ user, stats, isDarkMode }) => {
+  
+  // Default values if stats haven't loaded yet
+  const data = stats || {
+    totalDonations: 0,
+    livesSaved: 0,
+    lastDonationDate: null,
+    nextEligibleDate: new Date()
+  };
+
   const theme = {
     card: isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-200 shadow-sm',
+    text: isDarkMode ? 'text-white' : 'text-slate-800',
     subtext: isDarkMode ? 'text-slate-400' : 'text-slate-500',
   };
 
+  // Format Dates
+  const nextDate = new Date(data.nextEligibleDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  const lastDate = data.lastDonationDate 
+    ? new Date(data.lastDonationDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) 
+    : "No donations yet";
+
   return (
-    <div className="grid lg:grid-cols-3 gap-8">
+    <div className="space-y-6">
       
-      {/* Left Column: Digital Card & Upcoming */}
-      <div className="lg:col-span-1 space-y-8">
-        
-        {/* Digital Donor Card */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-600 to-rose-800 text-white p-6 shadow-2xl shadow-rose-900/20">
-          {/* Decorative Circles */}
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full blur-xl"></div>
-
-          <div className="relative z-10">
-            <div className="flex justify-between items-start mb-8">
-              <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-medium border border-white/10">Verified Donor</span>
-              <Droplet className="w-6 h-6 text-rose-200 fill-rose-200" />
-            </div>
-            
-            <div className="text-center mb-8">
-              <div className="bg-white p-3 rounded-2xl w-32 h-32 mx-auto mb-4 flex items-center justify-center shadow-lg">
-                <QrCode className="w-full h-full text-slate-900" />
-              </div>
-              <p className="text-rose-100 text-xs">Scan at camp to check-in</p>
-            </div>
-
-            <div className="flex justify-between items-end">
-              <div>
-                <p className="text-rose-200 text-sm">Donor Name</p>
-                <p className="font-bold text-lg">{user.fullName}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-rose-200 text-sm">Group</p>
-                <p className="font-bold text-3xl">{user.bloodGroup || 'O+'}</p>
-              </div>
-            </div>
+      {/* 1. Impact Stats Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Lives Saved */}
+        <div className={`p-6 rounded-3xl border flex items-center gap-5 ${theme.card}`}>
+          <div className="w-14 h-14 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-600">
+            <Heart className="w-7 h-7 fill-current" />
+          </div>
+          <div>
+            <p className={`text-3xl font-bold ${theme.text}`}>{data.livesSaved}</p>
+            <p className={`text-sm ${theme.subtext}`}>Lives Impacted</p>
           </div>
         </div>
 
-        {/* Upcoming Appointment */}
-        <div className={`p-6 rounded-3xl border ${theme.card}`}>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold">Next Appointment</h3>
-            <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-bold">CONFIRMED</span>
+        {/* Total Donations */}
+        <div className={`p-6 rounded-3xl border flex items-center gap-5 ${theme.card}`}>
+          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+            <Droplet className="w-7 h-7 fill-current" />
           </div>
-          <div className="flex gap-4 items-center mb-4">
-            <div className="w-12 h-12 bg-rose-100 rounded-2xl flex flex-col items-center justify-center text-rose-700 font-bold text-xs">
-              <span className="text-sm">28</span>
-              <span>JAN</span>
-            </div>
-            <div>
-              <h4 className="font-bold">City Plaza Drive</h4>
-              <p className={`text-xs ${theme.subtext}`}>09:00 AM • Main Hall</p>
-            </div>
+          <div>
+            <p className={`text-3xl font-bold ${theme.text}`}>{data.totalDonations}</p>
+            <p className={`text-sm ${theme.subtext}`}>Total Donations</p>
           </div>
-          <button className="w-full py-2.5 rounded-xl border border-rose-200 text-rose-600 text-sm font-semibold hover:bg-rose-50 transition-colors">
-            Get Directions
-          </button>
+        </div>
+
+        {/* Next Eligible Date */}
+        <div className={`p-6 rounded-3xl border flex items-center gap-5 ${theme.card}`}>
+          <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600">
+            <Calendar className="w-7 h-7" />
+          </div>
+          <div>
+            <p className={`text-lg font-bold ${theme.text}`}>{nextDate}</p>
+            <p className={`text-sm ${theme.subtext}`}>Next Eligible Date</p>
+          </div>
         </div>
       </div>
 
-      {/* Right Column: Stats & Recommendations */}
-      <div className="lg:col-span-2 space-y-8">
+      {/* 2. Main Content Grid */}
+      <div className="grid lg:grid-cols-2 gap-6">
         
-        {/* Health Stats Row */}
-        <div className="grid sm:grid-cols-3 gap-4">
-          {[
-            { label: 'Last Donation', val: '95 days ago', color: 'text-slate-700 dark:text-white' },
-            { label: 'Hemoglobin', val: '14.2 g/dL', color: 'text-emerald-500' },
-            { label: 'Blood Pressure', val: '120/80', color: 'text-blue-500' }
-          ].map((stat, i) => (
-            <div key={i} className={`p-5 rounded-2xl border ${theme.card}`}>
-              <p className={`text-xs ${theme.subtext} mb-1`}>{stat.label}</p>
-              <p className={`text-xl font-bold ${stat.color}`}>{stat.val}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Recommended Camps */}
+        {/* Recent Activity */}
         <div className={`p-6 rounded-3xl border ${theme.card}`}>
           <div className="flex justify-between items-center mb-6">
-            <h3 className="font-bold text-lg">Recommended Camps Nearby</h3>
-            <button className="text-rose-600 text-sm font-semibold flex items-center hover:underline">
-              View Map <ArrowUpRight className="w-4 h-4 ml-1" />
-            </button>
+            <h3 className={`font-bold text-lg ${theme.text}`}>Recent Activity</h3>
+            <span className={`text-xs px-3 py-1 rounded-full border ${isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-gray-200 bg-gray-50'}`}>
+              Last: {lastDate}
+            </span>
           </div>
 
           <div className="space-y-4">
-            {[
-              { name: 'Tech Park Blood Drive', dist: '1.2 km', date: 'Feb 02', slots: 12 },
-              { name: 'University Campus', dist: '3.5 km', date: 'Feb 10', slots: 45 },
-              { name: 'Community Center', dist: '5.0 km', date: 'Feb 15', slots: 8 }
-            ].map((camp, i) => (
-              <div key={i} className={`flex items-center justify-between p-4 rounded-2xl border hover:border-rose-300 transition-all cursor-pointer ${isDarkMode ? 'border-slate-800 hover:bg-slate-800' : 'border-gray-100 hover:bg-rose-50'}`}>
-                <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-full ${isDarkMode ? 'bg-slate-800 text-rose-400' : 'bg-rose-100 text-rose-600'}`}>
-                    <MapPin className="w-5 h-5" />
+            {data.recentActivity && data.recentActivity.length > 0 ? (
+              data.recentActivity.map((camp) => (
+                <div key={camp._id} className={`flex items-center justify-between p-4 rounded-2xl border ${isDarkMode ? 'border-slate-800 bg-slate-950/50' : 'border-gray-100 bg-slate-50'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 font-bold text-xs">
+                      {camp.campName.charAt(0)}
+                    </div>
+                    <div>
+                      <h4 className={`font-bold text-sm ${theme.text}`}>{camp.campName}</h4>
+                      <p className="text-xs text-gray-400">{new Date(camp.date).toLocaleDateString()}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-sm">{camp.name}</h4>
-                    <p className={`text-xs ${theme.subtext}`}>{camp.dist} away • {camp.date}</p>
-                  </div>
+                  <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-lg">
+                    Completed
+                  </span>
                 </div>
-                <button className="bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-2 rounded-lg text-xs font-bold hover:opacity-90">
-                  Book
-                </button>
+              ))
+            ) : (
+              <div className="text-center py-8 opacity-50">
+                <p>No recent activity found.</p>
+                <p className="text-xs mt-1">Join a camp to save lives!</p>
               </div>
-            ))}
+            )}
+          </div>
+        </div>
+
+        {/* Call to Action */}
+        <div className="p-1 rounded-3xl bg-gradient-to-br from-rose-500 to-orange-500">
+          <div className={`h-full rounded-[22px] p-8 flex flex-col justify-center items-start ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
+             <span className="bg-rose-100 text-rose-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-4">Urgent Need</span>
+             <h3 className={`text-2xl font-bold mb-2 ${theme.text}`}>Ready to save a life?</h3>
+             <p className={`text-sm mb-8 leading-relaxed ${theme.subtext}`}>
+               There are 3 donation camps happening near <strong>{user.address || 'your location'}</strong> this week. Your donation can make a world of difference.
+             </p>
+             <button className="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold transition-all shadow-lg shadow-rose-500/30 flex items-center justify-center gap-2">
+               Find a Camp <ArrowRight className="w-4 h-4" />
+             </button>
           </div>
         </div>
 

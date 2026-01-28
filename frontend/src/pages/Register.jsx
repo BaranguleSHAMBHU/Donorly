@@ -91,7 +91,7 @@ const Register = () => {
         
         // Delay redirect slightly so user sees the success message
         setTimeout(() => {
-          navigate("/dashboard");
+          navigate("/donor-dashboard");
         }, 1500);
       }
     } catch (error) {
