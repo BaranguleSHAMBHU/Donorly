@@ -194,3 +194,17 @@ export const getDonorStats = async (req, res) => {
     res.status(500).json({ message: "Server Error fetching stats" });
   }
 };
+// @desc    Get All My Donations (History)
+// @route   GET /api/auth/donations
+export const getMyDonations = async (req, res) => {
+  try {
+    const donations = await Donation.find({ donorId: req.user.id })
+      .populate('campId', 'campName location date organizerName') // Fill in camp details
+      .sort({ date: -1 }); // Newest first
+
+    res.json(donations);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};

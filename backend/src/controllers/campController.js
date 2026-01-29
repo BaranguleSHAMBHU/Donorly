@@ -1,29 +1,24 @@
-import Camp from "../models/Camp.js";
+import Camp from '../models/Camp.js';
 import Donation from '../models/Donation.js';
 import Donor from '../models/Donor.js';
+
+
 // @desc    Create a new Camp
 // @route   POST /api/camps
 export const createCamp = async (req, res) => {
   try {
-    console.log("🔹 4. Inside Controller. User:", req.user); // DEBUG LOG
-
     // Check if req.user exists
     if (!req.user || !req.user._id) {
-       console.log("❌ User ID missing in request");
        return res.status(401).json({ message: "User authentication failed" });
     }
 
     const campData = {
       ...req.body,
-      organizationId: req.user._id, // This is what we are watching!
+      organizationId: req.user._id, 
       organizerName: req.body.organizerName || req.user.orgName 
     };
 
-    console.log("🔹 5. Saving Camp Data:", campData); // DEBUG LOG
-
     const newCamp = await Camp.create(campData);
-
-    console.log("✅ 6. Camp Created Successfully:", newCamp);
     res.status(201).json(newCamp);
   } catch (error) {
     console.error("❌ Error creating camp:", error);
@@ -41,10 +36,9 @@ export const getCamps = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-/**
- * @desc    Register a Donor for a Camp
- * @route   POST /api/camps/:id/register
- */
+
+// @desc    Register a Donor for a Camp
+// @route   POST /api/camps/:id/register
 export const registerForCamp = async (req, res) => {
   try {
     const campId = req.params.id;
@@ -70,13 +64,12 @@ export const registerForCamp = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
-/**
- * @desc    Get Single Camp Details (with Donor List & Status)
- * @route   GET /api/camps/:id
- */
+
+// @desc    Get Single Camp Details (with Donor List & Status)
+// @route   GET /api/camps/:id
 export const getCampDetails = async (req, res) => {
   try {
-    // 1. Fetch the Camp and populate donor details
+    // 1. Fetch the Camp
     const camp = await Camp.findById(req.params.id)
       .populate('registeredDonors', 'fullName bloodGroup phone email')
       .populate('organizationId', 'orgName');
@@ -85,38 +78,45 @@ export const getCampDetails = async (req, res) => {
       return res.status(404).json({ message: "Camp not found" });
     }
 
-    // 2. Fetch all Donations for this specific camp
-    // This acts as our "Attendance Sheet"
+    // 2. Fetch all Donations (The Ledger)
     const donations = await Donation.find({ campId: camp._id });
-    
-    // Create a Set of IDs for fast lookup (O(1) complexity)
-    const donatedDonorIds = new Set(donations.map(d => d.donorId.toString()));
 
-    // 3. Map through registered donors and check their status
+    // 3. Create a Map for fast lookup: DonorID -> DonationID
+    const donationMap = new Map();
+    donations.forEach(d => {
+        donationMap.set(d.donorId.toString(), d._id);
+    });
+
+    // 4. Map through registered donors and add status + donationId
     const donorsWithStatus = camp.registeredDonors.map(donor => {
-        // Convert Mongoose object to plain JS object so we can add 'status'
-        const donorObj = donor.toObject(); 
+        const donorObj = donor.toObject();
         
-        // Check if this donor exists in the donations list
-        donorObj.status = donatedDonorIds.has(donor._id.toString()) ? 'Donated' : 'Registered';
+        const donorIdStr = donor._id.toString();
+
+        if (donationMap.has(donorIdStr)) {
+            donorObj.status = 'Donated';
+            donorObj.donationId = donationMap.get(donorIdStr); // ✅ SEND THIS ID
+        } else {
+            donorObj.status = 'Registered';
+        }
         
         return donorObj;
     });
 
-    // 4. Construct response
+    // 5. Send response
     const campData = camp.toObject();
     campData.registeredDonors = donorsWithStatus;
 
     res.json(campData);
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
   }
 };
-/**
- * @desc    Mark Donor as Donated (Check In)
- * @route   PUT /api/camps/:campId/checkin
- */
+
+// @desc    Mark Donor as Donated (Check In)
+// @route   PUT /api/camps/:campId/checkin
 export const updateDonorStatus = async (req, res) => {
   const { donorId } = req.body; 
 
@@ -145,9 +145,6 @@ export const updateDonorStatus = async (req, res) => {
       bloodGroup: donor.bloodGroup,
       date: new Date()
     });
-
-    // 3. (Optional) Update Camp "registeredDonors" status if you change the schema later.
-    // For now, the existence of a 'Donation' record proves they donated.
 
     res.json({ message: "Donor checked in & donation recorded!" });
 

@@ -23,6 +23,13 @@ const donationSchema = new mongoose.Schema({
     type: Number,
     default: 1
   },
+  medicalReport: {
+    type: String, // URL/Path to the file
+    default: null
+  },
+  reportUploadedAt: {
+    type: Date
+  },
   certificateIssued: {
     type: Boolean,
     default: true
