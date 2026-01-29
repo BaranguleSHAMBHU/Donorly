@@ -1,52 +1,108 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Download, Calendar, MapPin, CheckCircle } from 'lucide-react';
+import { Download, Calendar, MapPin, FileText } from 'lucide-react';
 
-const DonationHistory = () => {
+const DonationHistory = ({ isDarkMode }) => {
   const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Theme Helpers
+  const theme = {
+    card: isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-200 shadow-sm',
+    text: isDarkMode ? 'text-white' : 'text-slate-800',
+    subtext: isDarkMode ? 'text-slate-400' : 'text-slate-500',
+  };
 
   useEffect(() => {
     const fetchHistory = async () => {
-      const user = JSON.parse(localStorage.getItem("donorUser"));
-      // Fetch all camps, filter for ones where this user is registered AND status is 'Donated'
-      // Note: For a real app, you'd want a dedicated endpoint like /api/donors/my-history
-      // For now, we can filter client-side if the dataset is small
-      
-      const res = await axios.get("http://localhost:5000/api/camps");
-      const myDonations = res.data.filter(camp => 
-        camp.registeredDonors.some(d => (d._id === user.id || d === user.id))
-        // && check status if you added status to schema
-      );
-      setHistory(myDonations);
+      try {
+        const token = localStorage.getItem("donorToken");
+        // 👇 UPDATED: Fetch from the new 'donations' endpoint
+        const res = await axios.get("http://localhost:5000/api/auth/donations", {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        setHistory(res.data);
+      } catch (error) {
+        console.error("Error fetching history", error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchHistory();
   }, []);
 
+  if (loading) return <div className="p-8 text-center opacity-50">Loading history...</div>;
+
   return (
     <div className="space-y-4">
-      <h3 className="text-xl font-bold mb-4">My Certificates</h3>
+      <h3 className={`text-xl font-bold mb-4 ${theme.text}`}>My Donation Journey</h3>
       
-      {history.map(camp => (
-        <div key={camp._id} className="p-6 rounded-2xl border bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-800 flex justify-between items-center group hover:border-rose-200 transition-all">
-          
-          <div>
-            <h4 className="font-bold text-lg text-slate-800 dark:text-white">{camp.campName}</h4>
-            <div className="flex gap-4 text-sm text-slate-500 mt-1">
-              <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> {new Date(camp.date).toLocaleDateString()}</span>
-              <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {camp.location}</span>
-            </div>
-          </div>
-
-          <a 
-            href={`http://localhost:5000/api/camps/${camp._id}/certificate/${JSON.parse(localStorage.getItem("donorUser")).id}`}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-50 text-rose-600 font-bold hover:bg-rose-600 hover:text-white transition-all"
-          >
-            <Download className="w-4 h-4" />
-            <span>Certificate</span>
-          </a>
-
+      {history.length === 0 ? (
+        <div className={`p-8 text-center border rounded-2xl ${theme.card}`}>
+            <p className="opacity-50">You haven't made any donations yet.</p>
         </div>
-      ))}
+      ) : (
+        history.map(donation => (
+          <div 
+            key={donation._id} 
+            className={`p-6 rounded-2xl border flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all hover:border-rose-200 ${theme.card}`}
+          >
+            
+            {/* Camp Info (Accessed via donation.campId) */}
+            <div>
+              <h4 className={`font-bold text-lg ${theme.text}`}>
+                  {donation.campId ? donation.campId.campName : "Unknown Camp"}
+              </h4>
+              <div className={`flex gap-4 text-sm mt-1 ${theme.subtext}`}>
+                <span className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" /> 
+                    {new Date(donation.date).toLocaleDateString()}
+                </span>
+                {donation.campId && (
+                    <span className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" /> 
+                        {donation.campId.location}
+                    </span>
+                )}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+                
+                {/* 1. Certificate Button */}
+                {/* Use donation.campId._id and donation.donorId */}
+                {donation.campId && (
+                    <a 
+                    href={`http://localhost:5000/api/camps/${donation.campId._id}/certificate/${donation.donorId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-50 text-rose-600 font-bold hover:bg-rose-600 hover:text-white transition-all text-sm border border-rose-100"
+                    >
+                    <Download className="w-4 h-4" />
+                    <span>Certificate</span>
+                    </a>
+                )}
+
+                {/* 2. Medical Report Button (Now it will work!) */}
+                {donation.medicalReport && (
+                  <a 
+                    href={`http://localhost:5000/${donation.medicalReport}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-50 text-purple-600 font-bold hover:bg-purple-600 hover:text-white transition-all text-sm border border-purple-100"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span>Report</span>
+                  </a>
+                )}
+
+            </div>
+
+          </div>
+        ))
+      )}
     </div>
   );
 };

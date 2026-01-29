@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Users, Search, Phone, Droplet, ChevronDown, CheckCircle, Bell, FileText, Download } from 'lucide-react';
+import { Users, Search, Phone, Droplet, ChevronDown, CheckCircle, Bell, FileText, Download, FileUp } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ReportUploadModal from './ReportUploadModal.jsx'; // ✅ Import the Modal
 
 const DonorManagement = ({ isDarkMode }) => {
   const [camps, setCamps] = useState([]);
@@ -9,6 +10,10 @@ const DonorManagement = ({ isDarkMode }) => {
   const [donors, setDonors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Modal State
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [currentDonationId, setCurrentDonationId] = useState(null);
 
   // 1. Fetch Organization's Camps on Load
   useEffect(() => {
@@ -19,7 +24,6 @@ const DonorManagement = ({ isDarkMode }) => {
         
         if (!storedOrg || !token) return;
 
-        // Fetch all camps
         const res = await axios.get("http://localhost:5000/api/camps");
         
         // Filter: Only show camps created by THIS logged-in organization
@@ -30,7 +34,6 @@ const DonorManagement = ({ isDarkMode }) => {
         
         setCamps(myCamps);
         
-        // Auto-select the first camp if available
         if (myCamps.length > 0) {
           setSelectedCampId(myCamps[0]._id);
         }
@@ -50,7 +53,6 @@ const DonorManagement = ({ isDarkMode }) => {
       setLoading(true);
       try {
         const res = await axios.get(`http://localhost:5000/api/camps/${selectedCampId}`);
-        // Add a 'status' field to donors locally if not present in DB yet
         const donorList = (res.data.registeredDonors || []).map(d => ({
             ...d,
             status: d.status || 'Registered' 
@@ -70,19 +72,19 @@ const DonorManagement = ({ isDarkMode }) => {
   // 3. Handle Check-In Action
   const handleCheckIn = async (donorId) => {
     try {
-        // Call the backend
-        await axios.put(`http://localhost:5000/api/camps/${selectedCampId}/checkin`, 
+        const res = await axios.put(`http://localhost:5000/api/camps/${selectedCampId}/checkin`, 
             { donorId },
             { headers: { Authorization: `Bearer ${localStorage.getItem("orgToken")}` } }
         );
 
         // Optimistic UI Update
         setDonors(prev => prev.map(d => 
-            d._id === donorId ? { ...d, status: 'Donated' } : d
+            d._id === donorId ? { ...d, status: 'Donated', donationId: res.data.donationId } : d
         ));
         
         toast.success("Donation recorded successfully!");
-    
+        // Refresh list to get the new Donation ID from backend
+        // fetchDonors(); // Optional: Uncomment to be safe
     } catch (error) {
         toast.error(error.response?.data?.message || "Check-in failed");
     }
@@ -92,7 +94,6 @@ const DonorManagement = ({ isDarkMode }) => {
   const handleNotifyDonors = async () => {
     if (!selectedCampId) return;
     
-    // Optional: Ask for custom message or use default
     const confirmNotify = window.confirm("Send a reminder notification to all registered donors?");
     if (!confirmNotify) return;
 
@@ -176,7 +177,6 @@ const DonorManagement = ({ isDarkMode }) => {
             <Bell className="w-4 h-4" /> 
             <span className="hidden md:inline">Notify All</span>
           </button>
-
         </div>
       </div>
 
@@ -245,14 +245,32 @@ const DonorManagement = ({ isDarkMode }) => {
                             <span className="text-emerald-600 font-bold text-xs flex items-center justify-end gap-1">
                               <CheckCircle className="w-4 h-4" /> Checked In
                             </span>
-                            <a 
-                              href={`http://localhost:5000/api/camps/${selectedCampId}/certificate/${donor._id}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="px-3 py-1.5 rounded-lg border border-teal-600 text-teal-600 text-xs font-bold hover:bg-teal-50 transition-colors flex items-center gap-1"
-                            >
-                              <Download className="w-3 h-3" /> Cert
-                            </a>
+                            
+                            <div className="flex gap-2">
+                              {/* Certificate Download */}
+                              <a 
+                                href={`http://localhost:5000/api/camps/${selectedCampId}/certificate/${donor._id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3 py-1.5 rounded-lg border border-teal-600 text-teal-600 text-xs font-bold hover:bg-teal-50 transition-colors flex items-center gap-1"
+                              >
+                                <Download className="w-3 h-3" /> Cert
+                              </a>
+
+                              {/* Upload Report Button */}
+                              <button 
+                                onClick={() => {
+                                  // Open Modal and set Donation ID
+                                  // Requires backend getCampDetails to populate donationId
+                                  setCurrentDonationId(donor.donationId); 
+                                  setIsUploadModalOpen(true);
+                                }}
+                                disabled={!donor.donationId}
+                                className="px-3 py-1.5 rounded-lg border border-purple-500 text-purple-600 text-xs font-bold hover:bg-purple-50 flex items-center gap-1 disabled:opacity-50"
+                              >
+                                <FileUp className="w-3 h-3" /> Report
+                              </button>
+                            </div>
                         </div>
                       ) : (
                         <button 
@@ -270,6 +288,16 @@ const DonorManagement = ({ isDarkMode }) => {
           </div>
         )}
       </div>
+
+      {/* ✅ Report Upload Modal Placed Here */}
+      <ReportUploadModal 
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        donationId={currentDonationId} 
+        onSuccess={() => {
+           // Optionally refresh list or just close
+        }}
+      />
     </div>
   );
 };

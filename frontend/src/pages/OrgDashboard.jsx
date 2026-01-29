@@ -14,7 +14,7 @@ import UpcomingCamps from '../components/dashboard/UpcomingCamps.jsx';
 import DonorManagement from '../components/dashboard/DonorManagement.jsx';
 import CampManager from '../components/dashboard/CampManager.jsx';
 import Analytics from '../components/dashboard/Analytics.jsx';
-
+import CertificateManager from '../components/dashboard/CertificateManager.jsx'; // 👈 Add this
 const OrgDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [org, setOrg] = useState({ orgName: 'Organization' });
@@ -127,7 +127,7 @@ const OrgDashboard = () => {
         );
       
       case 'donors': return <DonorManagement isDarkMode={isDarkMode} />;
-      case 'certificates': return <DonorManagement isDarkMode={isDarkMode} />;
+      case 'certificates': return <CertificateManager isDarkMode={isDarkMode} />;
       case 'reports': return <Analytics isDarkMode={isDarkMode} />;
       default: return null;
     }
