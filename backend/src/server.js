@@ -4,6 +4,10 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import path from 'path';
 import { fileURLToPath } from 'url';
+import chatRoutes from './routes/chatRoutes.js';
+
+// ... inside app.use() section
+
 
 import authRoutes from "./routes/authRoutes.js";
 import orgRoutes from "./routes/orgRoutes.js";
@@ -26,6 +30,7 @@ app.use("/api/camps", campRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/api/chat', chatRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

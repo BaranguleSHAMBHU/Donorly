@@ -9,6 +9,7 @@ import OrgSignup from "./pages/OrgSignup.jsx";
 import OrgLogin from "./pages/OrgLogin.jsx";
 import OrgDashboard from "./pages/OrgDashboard.jsx";
 import AddCamp from "./pages/AddCamp.jsx";
+import ChatBot from "./components/ChatBot.jsx";
 
 function App() {
   return (
@@ -20,7 +21,7 @@ function App() {
         <Route path="/donor-signup" element={<Register />} />
         <Route path="/org-login" element={<OrgLogin />} />
         <Route path="/org-signup" element={<OrgSignup />} />
-
+       
         {/* 🔒 Protected Donor Routes */}
         <Route
           path="/donor-dashboard"
@@ -50,6 +51,7 @@ function App() {
           } 
         />
       </Routes>
+       <ChatBot/>
     </ThemeProvider>
   );
 }
