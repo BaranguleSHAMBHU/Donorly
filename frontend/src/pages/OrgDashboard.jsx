@@ -11,7 +11,7 @@ import Sidebar from '../components/dashboard/Sidebar.jsx';
 import StatsOverview from '../components/dashboard/StatsOverview.jsx';
 import BloodInventory from '../components/dashboard/BloodInventory.jsx'; // ✅ The new interactive component
 import UpcomingCamps from '../components/dashboard/UpcomingCamps.jsx';
-import DonorManagement from '../components/dashboard/DonorManagement.jsx';
+import DonorManagement from '../components/dashboard/donorManagement.jsx';
 import CampManager from '../components/dashboard/CampManager.jsx';
 import Analytics from '../components/dashboard/Analytics.jsx';
 import CertificateManager from '../components/dashboard/CertificateManager.jsx'; // 👈 Add this
