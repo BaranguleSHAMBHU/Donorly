@@ -21,7 +21,10 @@ connectDB();
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-app.use(cors());
+app.use(cors({
+    origin: '*', 
+    credentials: true
+}));
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
