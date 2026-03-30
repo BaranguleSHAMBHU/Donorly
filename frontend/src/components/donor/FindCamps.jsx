@@ -17,7 +17,7 @@ const FindCamps = ({ isDarkMode }) => {
   useEffect(() => {
     const fetchCamps = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/camps");
+        const res = await axios.get("https://donorly-backend.onrender.com/api/camps");
         
         // Transform Data for UI
         const formattedCamps = res.data.map(camp => ({
@@ -57,7 +57,7 @@ const FindCamps = ({ isDarkMode }) => {
 
     try {
       await axios.post(
-        `http://localhost:5000/api/camps/${campId}/register`, 
+        `https://donorly-backend.onrender.com/api/camps/${campId}/register`, 
         {}, 
         { headers: { Authorization: `Bearer ${token}` } }
       );

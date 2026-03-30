@@ -49,7 +49,7 @@ const OrgDashboard = () => {
 
       try {
         // 2. Fetch ALL Camps
-        const res = await axios.get("http://localhost:5000/api/camps");
+        const res = await axios.get("https://donorly-backend.onrender.com/api/camps");
 
         // 3. Filter My Camps
         const myCamps = res.data.filter(camp => {

@@ -12,7 +12,7 @@ const BloodInventory = ({ isDarkMode }) => {
   const fetchInventory = async () => {
     try {
       const token = localStorage.getItem("orgToken");
-      const res = await axios.get("http://localhost:5000/api/inventory", {
+      const res = await axios.get("https://donorly-backend.onrender.com/api/inventory", {
         headers: { Authorization: `Bearer ${token}` }
       });
       // The backend returns { stock: [...] }, so we set that array
@@ -64,7 +64,7 @@ const BloodInventory = ({ isDarkMode }) => {
       // Calculate new quantity for API
       const targetItem = newInventory.find(i => i.bloodGroup === bloodGroup);
       
-      await axios.put("http://localhost:5000/api/inventory", {
+      await axios.put("https://donorly-backend.onrender.com/api/inventory", {
         bloodGroup,
         quantity: targetItem.units
       }, {

@@ -37,7 +37,7 @@ const Login = () => {
     const normalizedEmail = email.toLowerCase();
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch("https://donorly-backend.onrender.com/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: normalizedEmail, password }),

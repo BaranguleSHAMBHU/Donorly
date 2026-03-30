@@ -25,7 +25,7 @@ const CertificateManager = ({ isDarkMode }) => {
         const token = localStorage.getItem("orgToken");
 
         // 1. Fetch All Camps
-        const res = await axios.get("http://localhost:5000/api/camps");
+        const res = await axios.get("https://donorly-backend.onrender.com/api/camps");
         
         // 2. Filter My Camps
         const myCamps = res.data.filter(c => {
@@ -45,7 +45,7 @@ const CertificateManager = ({ isDarkMode }) => {
         // (Optimized: In real app, make one backend call for this report)
         await Promise.all(myCamps.map(async (camp) => {
             try {
-                const campDetail = await axios.get(`http://localhost:5000/api/camps/${camp._id}`);
+                const campDetail = await axios.get(`https://donorly-backend.onrender.com/api/camps/${camp._id}`);
                 
                 // Filter only those who Donated
                 const donated = (campDetail.data.registeredDonors || []).filter(d => d.status === 'Donated');
@@ -141,7 +141,7 @@ const CertificateManager = ({ isDarkMode }) => {
                     </td>
                     <td className="p-5 text-right">
                         <a 
-                            href={`http://localhost:5000/api/camps/${donor.campId}/certificate/${donor._id}`}
+                            href={`https://donorly-backend.onrender.com/api/camps/${donor.campId}/certificate/${donor._id}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-50 text-indigo-600 font-bold hover:bg-indigo-600 hover:text-white transition-all text-xs border border-indigo-100"

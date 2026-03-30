@@ -18,7 +18,7 @@ const DonationHistory = ({ isDarkMode }) => {
       try {
         const token = localStorage.getItem("donorToken");
         // 👇 UPDATED: Fetch from the new 'donations' endpoint
-        const res = await axios.get("http://localhost:5000/api/auth/donations", {
+        const res = await axios.get("https://donorly-backend.onrender.com/api/auth/donations", {
             headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -75,7 +75,7 @@ const DonationHistory = ({ isDarkMode }) => {
                 {/* Use donation.campId._id and donation.donorId */}
                 {donation.campId && (
                     <a 
-                    href={`http://localhost:5000/api/camps/${donation.campId._id}/certificate/${donation.donorId}`}
+                    href={`https://donorly-backend.onrender.com/api/camps/${donation.campId._id}/certificate/${donation.donorId}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-50 text-rose-600 font-bold hover:bg-rose-600 hover:text-white transition-all text-sm border border-rose-100"
@@ -88,7 +88,7 @@ const DonationHistory = ({ isDarkMode }) => {
                 {/* 2. Medical Report Button (Now it will work!) */}
                 {donation.medicalReport && (
                   <a 
-                    href={`http://localhost:5000/${donation.medicalReport}`} 
+                    href={`https://donorly-backend.onrender.com/${donation.medicalReport}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-50 text-purple-600 font-bold hover:bg-purple-600 hover:text-white transition-all text-sm border border-purple-100"

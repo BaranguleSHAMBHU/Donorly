@@ -19,7 +19,7 @@ const Profile = ({ isDarkMode }) => {
         }
 
         // 1. Use Full Backend URL
-        const res = await axios.get("http://localhost:5000/api/auth/me", {
+        const res = await axios.get("https://donorly-backend.onrender.com/api/auth/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -63,7 +63,7 @@ const Profile = ({ isDarkMode }) => {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem("donorToken");
-      const res = await axios.put("http://localhost:5000/api/auth/profile", formData, {
+      const res = await axios.put("https://donorly-backend.onrender.com/api/auth/profile", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

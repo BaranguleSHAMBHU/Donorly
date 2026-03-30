@@ -24,7 +24,7 @@ const DonorManagement = ({ isDarkMode }) => {
         
         if (!storedOrg || !token) return;
 
-        const res = await axios.get("http://localhost:5000/api/camps");
+        const res = await axios.get("https://donorly-backend.onrender.com/api/camps");
         
         // Filter: Only show camps created by THIS logged-in organization
         const myCamps = res.data.filter(c => {
@@ -52,7 +52,7 @@ const DonorManagement = ({ isDarkMode }) => {
     const fetchDonors = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`http://localhost:5000/api/camps/${selectedCampId}`);
+        const res = await axios.get(`https://donorly-backend.onrender.com/api/camps/${selectedCampId}`);
         const donorList = (res.data.registeredDonors || []).map(d => ({
             ...d,
             status: d.status || 'Registered' 
@@ -72,7 +72,7 @@ const DonorManagement = ({ isDarkMode }) => {
   // 3. Handle Check-In Action
   const handleCheckIn = async (donorId) => {
     try {
-        const res = await axios.put(`http://localhost:5000/api/camps/${selectedCampId}/checkin`, 
+        const res = await axios.put(`https://donorly-backend.onrender.com/api/camps/${selectedCampId}/checkin`, 
             { donorId },
             { headers: { Authorization: `Bearer ${localStorage.getItem("orgToken")}` } }
         );
@@ -99,7 +99,7 @@ const DonorManagement = ({ isDarkMode }) => {
 
     try {
       const token = localStorage.getItem("orgToken");
-      await axios.post("http://localhost:5000/api/notifications/send-camp-alert", {
+      await axios.post("https://donorly-backend.onrender.com/api/notifications/send-camp-alert", {
         campId: selectedCampId,
         message: "🔔 Reminder: Our blood donation drive is live! Please visit the camp location.",
         type: 'reminder'
@@ -249,7 +249,7 @@ const DonorManagement = ({ isDarkMode }) => {
                             <div className="flex gap-2">
                               {/* Certificate Download */}
                               <a 
-                                href={`http://localhost:5000/api/camps/${selectedCampId}/certificate/${donor._id}`}
+                                href={`https://donorly-backend.onrender.com/api/camps/${selectedCampId}/certificate/${donor._id}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="px-3 py-1.5 rounded-lg border border-teal-600 text-teal-600 text-xs font-bold hover:bg-teal-50 transition-colors flex items-center gap-1"

@@ -53,13 +53,13 @@ const DonorDashboard = () => {
         setUser(JSON.parse(storedUser));
 
         // A. Fetch Stats
-        const statsRes = await axios.get("http://localhost:5000/api/auth/stats", {
+        const statsRes = await axios.get("https://donorly-backend.onrender.com/api/auth/stats", {
           headers: { Authorization: `Bearer ${token}` }
         });
         setStats(statsRes.data);
 
         // B. Fetch Notifications
-        const notifRes = await axios.get("http://localhost:5000/api/notifications", {
+        const notifRes = await axios.get("https://donorly-backend.onrender.com/api/notifications", {
           headers: { Authorization: `Bearer ${token}` }
         });
         setNotifications(notifRes.data);
@@ -102,7 +102,7 @@ const DonorDashboard = () => {
   const handleMarkRead = async (id) => {
     try {
        const token = localStorage.getItem("donorToken");
-       await axios.put(`http://localhost:5000/api/notifications/${id}/read`, {}, {
+       await axios.put(`https://donorly-backend.onrender.com/api/notifications/${id}/read`, {}, {
          headers: { Authorization: `Bearer ${token}` }
        });
        

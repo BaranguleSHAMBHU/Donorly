@@ -25,7 +25,7 @@ const OrgLogin = () => {
     setIsLoading(true);
     
     try {
-      const res = await fetch("http://localhost:5000/api/org/auth/login", { // Separate Endpoint
+      const res = await fetch("https://donorly-backend.onrender.com/api/org/auth/login", { // Separate Endpoint
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.toLowerCase(), password }),

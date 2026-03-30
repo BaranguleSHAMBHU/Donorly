@@ -61,7 +61,7 @@ const AddCamp = () => {
 
       // ✅ AXIOS REQUEST
       // We do NOT send organizationId. The backend extracts it from the token.
-      await axios.post("http://localhost:5000/api/camps", formData, {
+      await axios.post("https://donorly-backend.onrender.com/api/camps", formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       

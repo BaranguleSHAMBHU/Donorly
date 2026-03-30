@@ -69,7 +69,7 @@ const OrgSignup = () => {
 
     try {
       // Endpoint likely needs to be different for Org
-      const res = await fetch("http://localhost:5000/api/org/register", { 
+      const res = await fetch("https://donorly-backend.onrender.com/api/org/register", { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
